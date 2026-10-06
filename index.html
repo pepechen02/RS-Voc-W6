@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RS-W6-Vocabulary · 閃卡與小測驗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF7F1;
+    --ink: #40434A;
+    --ink-soft: #8A8D95;
+    --blue: #4E7FE0;
+    --blue-deep: #3E67C0;
+    --blue-light: #7FA6EE;
+    --mint: #3FBFAE;
+    --sun: #FFC24B;
+    --coral: #FF6B5B;
+    --card-radius: 26px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html, body {
+    height: 100%; margin: 0;
+    background: var(--cream);
+    font-family: 'Nunito', sans-serif;
+    color: var(--ink);
+  }
+  body {
+    min-height: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 16px 40px;
+  }
+  .stage { width: 100%; max-width: 560px; }
+
+  .app-title {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: clamp(22px, 5vw, 30px);
+    color: var(--blue-deep);
+    text-align: center;
+    margin: 2px 0 2px;
+  }
+  .app-sub {
+    text-align: center; color: var(--ink-soft);
+    font-weight: 700; font-size: 13px; margin-bottom: 16px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; background: #FFFFFF; padding: 6px;
+    border-radius: 18px; margin-bottom: 20px;
+    box-shadow: inset 0 1px 3px rgba(64,67,74,0.08);
+  }
+  .tab-btn {
+    border: none; background: transparent; cursor: pointer;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15px;
+    padding: 11px 8px; border-radius: 14px; color: var(--ink-soft);
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .tab-btn.active { background: var(--blue); color: white; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* Progress */
+  .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .progress-track {
+    flex: 1; height: 12px; border-radius: 999px; background: #FFFFFF;
+    box-shadow: inset 0 2px 4px rgba(64,67,74,0.10); overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--blue-light), var(--blue));
+    transition: width 0.4s cubic-bezier(.4,1.4,.6,1);
+  }
+  .progress-label {
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px;
+    min-width: 54px; text-align: right;
+  }
+  .mastered-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #FFFFFF; border-radius: 999px; padding: 6px 14px;
+    font-weight: 800; font-size: 13px; color: var(--mint);
+    box-shadow: 0 3px 10px rgba(64,67,74,0.08);
+    margin: 0 auto 16px; width: fit-content;
+  }
+
+  /* Flashcard */
+  .card-wrap { perspective: 1600px; width: 100%; aspect-ratio: 4/5; max-height: 60vh; margin: 0 auto 20px; }
+  .card {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(.5,.1,.2,1.15);
+    cursor: pointer;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute; inset: 0; border-radius: var(--card-radius);
+    backface-visibility: hidden; display: flex; flex-direction: column;
+    padding: 24px 22px 20px;
+    box-shadow: 0 12px 0 rgba(64,67,74,0.08), 0 18px 30px rgba(64,67,74,0.14);
+    border: 3px solid rgba(255,255,255,0.55);
+    background: linear-gradient(155deg, var(--blue-light), var(--blue));
+  }
+  .card-front { align-items: center; justify-content: center; text-align: center; }
+  .card-back { transform: rotateY(180deg); justify-content: flex-start; }
+
+  .card-index-badge {
+    position: absolute; top: 16px; left: 18px;
+    background: rgba(255,255,255,0.5); color: white;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 12.5px;
+    padding: 5px 12px; border-radius: 999px;
+  }
+  .mastered-badge {
+    position: absolute; top: 16px; right: 18px; background: var(--mint);
+    color: white; font-size: 17px; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(63,191,174,0.4);
+  }
+
+  .front-word {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800;
+    font-size: clamp(30px, 7.5vw, 42px); color: white;
+    text-shadow: 0 3px 0 rgba(0,0,0,0.10); margin-bottom: 8px; word-break: break-word;
+  }
+  .front-pos {
+    background: rgba(255,255,255,0.3); color: white; font-weight: 800;
+    font-size: 12.5px; padding: 4px 14px; border-radius: 999px; margin-bottom: 20px;
+  }
+  .front-hint { color: rgba(255,255,255,0.85); font-weight: 700; font-size: 12.5px; margin-top: 16px; }
+
+  .speak-btn {
+    display: inline-flex; align-items: center; gap: 8px; background: white;
+    color: var(--blue-deep); border: none; font-family: 'Baloo 2', sans-serif;
+    font-weight: 700; font-size: 14.5px; padding: 10px 18px; border-radius: 999px;
+    box-shadow: 0 4px 0 rgba(64,67,74,0.15); cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .speak-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(64,67,74,0.15); }
+  .speak-btn.speaking { animation: pulse 0.9s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 4px 0 rgba(64,67,74,0.15); }
+    50% { box-shadow: 0 4px 0 rgba(64,67,74,0.15), 0 0 0 6px rgba(255,255,255,0.4); }
+  }
+
+  .back-top { display: flex; align-items: center; justify-content: space-between; margin-top: 28px; margin-bottom: 12px; gap: 10px; }
+  .back-word { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 21px; color: white; }
+  .back-pos { display: inline-block; background: rgba(255,255,255,0.3); color: white; font-weight: 800; font-size: 12px; padding: 3px 11px; border-radius: 999px; margin-bottom: 7px; width: fit-content; }
+  .back-scroll { flex: 1; overflow-y: auto; padding-right: 2px; }
+  .back-block { background: rgba(255,255,255,0.92); border-radius: 15px; padding: 11px 13px; margin-bottom: 9px; }
+  .back-block-label { font-size: 10.5px; font-weight: 800; color: var(--ink-soft); margin-bottom: 4px; }
+  .back-block-text { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.5; }
+  .back-block.zh .back-block-text { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 16.5px; color: var(--blue-deep); }
+  .back-block.example .back-block-text { font-style: italic; }
+
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .ctrl-btn {
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14.5px; border: none;
+    border-radius: 16px; padding: 13px 10px; display: flex; align-items: center; justify-content: center;
+    gap: 8px; cursor: pointer; box-shadow: 0 4px 0 rgba(64,67,74,0.14);
+    transition: transform 0.12s ease, box-shadow 0.12s ease; color: white;
+  }
+  .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(64,67,74,0.14); }
+  .ctrl-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .ctrl-prev, .ctrl-shuffle { background: var(--ink-soft); }
+  .ctrl-next { background: var(--blue); }
+  .ctrl-mastered { background: var(--mint); }
+  .ctrl-mastered.is-on { background: #2E9C8C; }
+
+  .footer-note { text-align: center; color: var(--ink-soft); font-size: 12px; font-weight: 600; margin-top: 6px; }
+
+  /* Quiz */
+  .quiz-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+  .score-pill {
+    background: #FFFFFF; border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 13px;
+    color: var(--blue-deep); box-shadow: 0 3px 10px rgba(64,67,74,0.08);
+  }
+  .shuffle-toggle {
+    display: flex; align-items: center; gap: 6px; background: white; border: none;
+    border-radius: 999px; padding: 6px 14px; font-family: 'Baloo 2', sans-serif;
+    font-weight: 700; font-size: 12.5px; color: var(--ink-soft); cursor: pointer;
+    box-shadow: 0 3px 10px rgba(64,67,74,0.08);
+  }
+  .shuffle-toggle.on { color: white; background: var(--blue); }
+
+  .quiz-card {
+    background: white; border-radius: var(--card-radius); padding: 24px 22px;
+    box-shadow: 0 12px 0 rgba(64,67,74,0.06), 0 18px 30px rgba(64,67,74,0.10);
+    margin-bottom: 16px; min-height: 300px; display: flex; flex-direction: column;
+  }
+  .quiz-type-badge {
+    display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+    background: rgba(78,127,224,0.12); color: var(--blue-deep); font-weight: 800;
+    font-size: 12px; padding: 5px 13px; border-radius: 999px; margin-bottom: 14px;
+  }
+  .quiz-question-word {
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px;
+  }
+  .quiz-sentence {
+    font-size: 18px; font-weight: 700; line-height: 1.6; color: var(--ink); margin-bottom: 16px;
+  }
+  .quiz-sentence .blank { color: var(--blue-deep); border-bottom: 3px dashed var(--blue-light); padding: 0 4px; }
+  .quiz-listen-row { display: flex; justify-content: center; margin: 6px 0 18px; }
+  .quiz-listen-row .speak-btn { background: var(--blue); color: white; }
+  .quiz-input-row { display: flex; gap: 10px; margin-top: auto; }
+  .quiz-input {
+    flex: 1; border: 3px solid #E7E9F0; border-radius: 14px; padding: 12px 16px;
+    font-size: 16px; font-weight: 700; font-family: 'Nunito', sans-serif; color: var(--ink);
+    outline: none; transition: border-color 0.15s ease;
+  }
+  .quiz-input:focus { border-color: var(--blue); }
+  .quiz-input.correct { border-color: var(--mint); background: rgba(63,191,174,0.08); }
+  .quiz-input.wrong { border-color: var(--coral); background: rgba(255,107,91,0.08); }
+  .quiz-submit-btn {
+    background: var(--blue); color: white; border: none; border-radius: 14px;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15px; padding: 0 20px;
+    cursor: pointer; box-shadow: 0 4px 0 rgba(64,67,74,0.14);
+  }
+  .quiz-submit-btn:active { transform: translateY(3px); box-shadow: none; }
+  .quiz-feedback {
+    margin-top: 12px; font-weight: 800; font-size: 14.5px; border-radius: 12px;
+    padding: 10px 14px; display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct { background: rgba(63,191,174,0.14); color: #2E9C8C; }
+  .quiz-feedback.wrong { background: rgba(255,107,91,0.14); color: var(--coral); }
+
+  .quiz-summary {
+    background: white; border-radius: var(--card-radius); padding: 34px 24px; text-align: center;
+    box-shadow: 0 12px 0 rgba(64,67,74,0.06), 0 18px 30px rgba(64,67,74,0.10);
+  }
+  .quiz-summary-emoji { font-size: 48px; margin-bottom: 10px; }
+  .quiz-summary-score {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 30px; color: var(--blue-deep); margin-bottom: 6px;
+  }
+  .quiz-summary-sub { color: var(--ink-soft); font-weight: 700; font-size: 14px; margin-bottom: 22px; }
+  .restart-btn {
+    background: var(--blue); color: white; border: none; border-radius: 999px;
+    font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 15px; padding: 13px 26px;
+    cursor: pointer; box-shadow: 0 4px 0 rgba(64,67,74,0.14);
+  }
+  .restart-btn:active { transform: translateY(3px); box-shadow: none; }
+
+  .toast {
+    position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%;
+    transform: translateX(-50%) translateY(20px); background: var(--ink); color: white;
+    font-weight: 700; font-size: 14px; padding: 10px 20px; border-radius: 999px;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .progress-fill, .ctrl-btn, .speak-btn, .quiz-submit-btn, .restart-btn { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="app-title">📚 RS-W6-Vocabulary</div>
+  <div class="app-sub">單字閃卡與小測驗</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabFlash" type="button">📇 閃卡</button>
+    <button class="tab-btn" id="tabQuiz" type="button">📝 小測驗</button>
+  </div>
+
+  <!-- FLASHCARD VIEW -->
+  <div class="view active" id="viewFlash">
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">1 / 10</div>
+    </div>
+    <div class="mastered-pill">✅ 已掌握 <span id="masteredCount">0</span> / <span id="totalCount">10</span></div>
+
+    <div class="card-wrap">
+      <div class="card" id="card">
+        <div class="card-face card-front" id="cardFront">
+          <div class="card-index-badge" id="indexBadgeFront"></div>
+          <div class="mastered-badge" id="masteredBadgeFront" style="display:none;">✓</div>
+          <div class="front-word" id="frontWord"></div>
+          <div class="front-pos" id="frontPos"></div>
+          <button class="speak-btn" id="speakFrontBtn" type="button">🔊 播放發音</button>
+          <div class="front-hint">👆 點卡片看解釋</div>
+        </div>
+        <div class="card-face card-back" id="cardBack">
+          <div class="card-index-badge" id="indexBadgeBack"></div>
+          <div class="mastered-badge" id="masteredBadgeBack" style="display:none;">✓</div>
+          <div class="back-top">
+            <div>
+              <div class="back-pos" id="backPos"></div>
+              <div class="back-word" id="backWord"></div>
+            </div>
+            <button class="speak-btn" id="speakBackBtn" type="button">🔊 播放</button>
+          </div>
+          <div class="back-scroll">
+            <div class="back-block">
+              <div class="back-block-label">DEFINITION</div>
+              <div class="back-block-text" id="backDef"></div>
+            </div>
+            <div class="back-block zh">
+              <div class="back-block-label">中文意思</div>
+              <div class="back-block-text" id="backZh"></div>
+            </div>
+            <div class="back-block example">
+              <div class="back-block-label">EXAMPLE</div>
+              <div class="back-block-text" id="backExample"></div>
+            </div>
+            <div class="back-block example-zh">
+              <div class="back-block-label">例句中譯</div>
+              <div class="back-block-text" id="backExampleZh"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn ctrl-prev" id="prevBtn" type="button">⬅️ 上一張</button>
+      <button class="ctrl-btn ctrl-next" id="nextBtn" type="button">下一張 ➡️</button>
+      <button class="ctrl-btn ctrl-mastered" id="masteredBtn" type="button">⭐ 標記已掌握</button>
+      <button class="ctrl-btn ctrl-shuffle" id="shuffleBtn" type="button">🔀 隨機打亂</button>
+    </div>
+    <div class="footer-note">共 10 個單字 · 進度不會儲存，重新整理會重置</div>
+  </div>
+
+  <!-- QUIZ VIEW -->
+  <div class="view" id="viewQuiz">
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="quizProgressFill"></div></div>
+      <div class="progress-label" id="quizProgressLabel">1 / 30</div>
+    </div>
+    <div class="quiz-topbar">
+      <div class="score-pill">🌟 答對 <span id="quizScore">0</span> 題</div>
+      <button class="shuffle-toggle" id="quizShuffleBtn" type="button">🔀 重新洗牌</button>
+    </div>
+
+    <div id="quizQuestionWrap">
+      <div class="quiz-card" id="quizCard">
+        <div class="quiz-type-badge" id="quizTypeBadge"></div>
+        <div class="quiz-question-word" id="quizWordHint"></div>
+        <div class="quiz-sentence" id="quizSentence"></div>
+        <div class="quiz-listen-row" id="quizListenRow" style="display:none;">
+          <button class="speak-btn" id="quizSpeakBtn" type="button">🔊 播放發音</button>
+        </div>
+        <div class="quiz-input-row">
+          <input class="quiz-input" id="quizInput" type="text" placeholder="請輸入答案…" autocomplete="off">
+          <button class="quiz-submit-btn" id="quizSubmitBtn" type="button">送出</button>
+        </div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl-btn ctrl-prev" id="quizPrevBtn" type="button">⬅️ 上一題</button>
+        <button class="ctrl-btn ctrl-next" id="quizNextBtn" type="button">下一題 ➡️</button>
+      </div>
+    </div>
+
+    <div class="quiz-summary" id="quizSummary" style="display:none;">
+      <div class="quiz-summary-emoji">🎉</div>
+      <div class="quiz-summary-score"><span id="finalScore">0</span> / 30</div>
+      <div class="quiz-summary-sub">你答對的題數！繼續加油～</div>
+      <button class="restart-btn" id="restartBtn" type="button">🔁 再測一次</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const words = [
+    { word: "high", pos: "adj.", def: "Measuring a long distance from the bottom to the top.", zh: "高的", example: "The house has a high wall all the way round it.", exampleZh: "這棟房子四周都圍著高牆。", exampleBlank: "high" },
+    { word: "sky", pos: "n.", def: "The space above the earth that you can see when you look up.", zh: "天空", example: "The sky suddenly went dark, and it started to rain.", exampleZh: "天空突然變暗，開始下雨了。", exampleBlank: "sky" },
+    { word: "pine", pos: "n.", def: "An evergreen forest tree with leaves like needles.", zh: "松樹", example: "You can find many pines in a tropical rainforest.", exampleZh: "你可以在熱帶雨林中找到許多松樹。", exampleBlank: "pines" },
+    { word: "fine", pos: "adj.", def: "Very well.", zh: "很好的；健康的", example: "\u201cHow's your throat?\u201d \u201cIt's fine as long as I don't cough.\u201d", exampleZh: "「你的喉嚨還好嗎？」「只要我不咳嗽就還好。」", exampleBlank: "fine" },
+    { word: "slow", pos: "adj.", def: "Not moving, acting, or done quickly; taking a long time; not fast.", zh: "緩慢的", example: "The student's progress was slower than expected.", exampleZh: "這位學生的進步比預期的慢。", exampleBlank: "slower" },
+    { word: "stroll", pos: "v.", def: "To walk somewhere in a slow, relaxed way.", zh: "散步；漫步", example: "People were strolling along the beach.", exampleZh: "人們在海灘上散步。", exampleBlank: "strolling" },
+    { word: "throw", pos: "v.", def: "To send something from your hand through the air by moving your hand or arm quickly.", zh: "投擲；丟", example: "They had a competition to see who could throw the furthest.", exampleZh: "他們舉行了一場比賽，看誰能丟得最遠。", exampleBlank: "throw" },
+    { word: "foal", pos: "n.", def: "A very young horse or donkey.", zh: "小馬；馬駒", example: "The foal ran across the field with its mother.", exampleZh: "小馬和牠的媽媽一起跑過田野。", exampleBlank: "foal" },
+    { word: "snow", pos: "n.", def: "Small, soft, white flakes of frozen water that fall from the sky in cold weather.", zh: "雪", example: "Heavy snow is expected tomorrow.", exampleZh: "明天預計會下大雪。", exampleBlank: "snow" },
+    { word: "go", pos: "v.", def: "To move somewhere.", zh: "去；移動", example: "\u201cWhere will you go this evening?\u201d \u201cI think I'll go and see a movie.\u201d", exampleZh: "「你今晚要去哪裡？」「我想我會去看電影。」", exampleBlank: "go" }
+  ];
+
+  function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  // Blanks only the FIRST occurrence of the given token (handles inflected forms
+  // like "pines", "strolling", "slower" that differ from the dictionary headword).
+  function blankOutToken(sentence, token) {
+    const re = new RegExp('\\b' + escapeRegExp(token) + '\\b', 'i');
+    return sentence.replace(re, '______');
+  }
+  function containsWord(text, word) {
+    const re = new RegExp('\\b' + escapeRegExp(word) + '\\b', 'i');
+    return re.test(text);
+  }
+
+  /* ---------- Tabs ---------- */
+  const tabFlash = document.getElementById('tabFlash');
+  const tabQuiz = document.getElementById('tabQuiz');
+  const viewFlash = document.getElementById('viewFlash');
+  const viewQuiz = document.getElementById('viewQuiz');
+
+  tabFlash.addEventListener('click', () => {
+    tabFlash.classList.add('active'); tabQuiz.classList.remove('active');
+    viewFlash.classList.add('active'); viewQuiz.classList.remove('active');
+    window.speechSynthesis && window.speechSynthesis.cancel();
+  });
+  tabQuiz.addEventListener('click', () => {
+    tabQuiz.classList.add('active'); tabFlash.classList.remove('active');
+    viewQuiz.classList.add('active'); viewFlash.classList.remove('active');
+    window.speechSynthesis && window.speechSynthesis.cancel();
+  });
+
+  const toast = document.getElementById('toast');
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 1400);
+  }
+
+  function speak(text, btn) {
+    if (!('speechSynthesis' in window)) { showToast('這個瀏覽器不支援語音朗讀 😢'); return; }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US'; utter.rate = 0.92; utter.pitch = 1.05;
+    if (btn) {
+      btn.classList.add('speaking');
+      utter.onend = () => btn.classList.remove('speaking');
+      utter.onerror = () => btn.classList.remove('speaking');
+    }
+    window.speechSynthesis.speak(utter);
+  }
+
+  /* ---------- Flashcards ---------- */
+  let order = words.map((_, i) => i);
+  let pos = 0; let flipped = false; let mastered = new Set();
+
+  const card = document.getElementById('card');
+  const frontWord = document.getElementById('frontWord');
+  const frontPos = document.getElementById('frontPos');
+  const backWord = document.getElementById('backWord');
+  const backPos = document.getElementById('backPos');
+  const backDef = document.getElementById('backDef');
+  const backZh = document.getElementById('backZh');
+  const backExample = document.getElementById('backExample');
+  const backExampleZh = document.getElementById('backExampleZh');
+  const indexBadgeFront = document.getElementById('indexBadgeFront');
+  const indexBadgeBack = document.getElementById('indexBadgeBack');
+  const masteredBadgeFront = document.getElementById('masteredBadgeFront');
+  const masteredBadgeBack = document.getElementById('masteredBadgeBack');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const masteredCountEl = document.getElementById('masteredCount');
+  const totalCountEl = document.getElementById('totalCount');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const masteredBtn = document.getElementById('masteredBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const speakFrontBtn = document.getElementById('speakFrontBtn');
+  const speakBackBtn = document.getElementById('speakBackBtn');
+
+  totalCountEl.textContent = words.length;
+
+  function currentWord() { return words[order[pos]]; }
+
+  function speakFront() { speak(currentWord().word, speakFrontBtn); }
+  function speakBack() { const w = currentWord(); speak(w.word + ". " + w.def, speakBackBtn); }
+
+  function renderFlash(autoSpeak) {
+    const w = currentWord();
+    const globalIdx = order[pos];
+    frontWord.textContent = w.word;
+    frontPos.textContent = w.pos;
+    backWord.textContent = w.word;
+    backPos.textContent = w.pos;
+    backDef.textContent = w.def;
+    backZh.textContent = w.zh;
+    backExample.textContent = '"' + w.example + '"';
+    backExampleZh.textContent = w.exampleZh;
+
+    indexBadgeFront.textContent = (pos + 1) + ' / ' + words.length;
+    indexBadgeBack.textContent = (pos + 1) + ' / ' + words.length;
+
+    const isMastered = mastered.has(globalIdx);
+    masteredBadgeFront.style.display = isMastered ? 'flex' : 'none';
+    masteredBadgeBack.style.display = isMastered ? 'flex' : 'none';
+    masteredBtn.textContent = isMastered ? '⭐ 已掌握！' : '⭐ 標記已掌握';
+    masteredBtn.classList.toggle('is-on', isMastered);
+
+    progressFill.style.width = ((pos + 1) / words.length * 100) + '%';
+    progressLabel.textContent = (pos + 1) + ' / ' + words.length;
+    masteredCountEl.textContent = mastered.size;
+
+    prevBtn.disabled = pos === 0;
+    nextBtn.disabled = pos === words.length - 1;
+
+    flipped = false;
+    card.classList.remove('flipped');
+    if (autoSpeak) setTimeout(speakFront, 200);
+  }
+
+  function goTo(newPos, autoSpeak) {
+    if (newPos < 0 || newPos >= words.length) return;
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    pos = newPos;
+    renderFlash(autoSpeak);
+  }
+
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('.speak-btn')) return;
+    flipped = !flipped;
+    card.classList.toggle('flipped', flipped);
+    if (flipped) setTimeout(speakBack, 350);
+  });
+  speakFrontBtn.addEventListener('click', (e) => { e.stopPropagation(); speakFront(); });
+  speakBackBtn.addEventListener('click', (e) => { e.stopPropagation(); speakBack(); });
+  prevBtn.addEventListener('click', () => goTo(pos - 1, true));
+  nextBtn.addEventListener('click', () => goTo(pos + 1, true));
+
+  masteredBtn.addEventListener('click', () => {
+    const globalIdx = order[pos];
+    if (mastered.has(globalIdx)) mastered.delete(globalIdx);
+    else { mastered.add(globalIdx); showToast('太棒了！你掌握了 "' + currentWord().word + '" 🎉'); }
+    renderFlash(false);
+  });
+
+  shuffleBtn.addEventListener('click', () => {
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    pos = 0;
+    showToast('已隨機打亂順序 🔀');
+    renderFlash(true);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!viewFlash.classList.contains('active')) return;
+    if (e.key === 'ArrowRight') goTo(pos + 1, true);
+    else if (e.key === 'ArrowLeft') goTo(pos - 1, true);
+    else if (e.key === ' ') { e.preventDefault(); card.click(); }
+  });
+
+  renderFlash(false);
+
+  /* ---------- Quiz ---------- */
+  // Build 3 questions per word: spelling, definition, example
+  function buildQuestions() {
+    const qs = [];
+    words.forEach((w, idx) => {
+      qs.push({ wordIdx: idx, type: 'listen', label: '👂 聽力拼字', prompt: '聽發音，拼出這個單字', answer: w.word });
+      const defText = containsWord(w.def, w.word) ? blankOutToken(w.def, w.word) : w.def;
+      qs.push({ wordIdx: idx, type: 'def', label: '📖 看定義', prompt: defText, answer: w.word });
+      const exText = blankOutToken(w.example, w.exampleBlank);
+      qs.push({ wordIdx: idx, type: 'example', label: '✏️ 例句填空', prompt: exText, answer: w.exampleBlank, altAnswer: w.word });
+    });
+    return qs;
+  }
+
+  // Fisher-Yates shuffle across ALL 30 individual questions (never grouped by word)
+  function shuffleFlat(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  let quizOrder = shuffleFlat(buildQuestions());
+  let qPos = 0;
+  let qScore = 0;
+  let answeredCorrect = new Array(quizOrder.length).fill(null); // null=unanswered, true/false
+
+  const quizProgressFill = document.getElementById('quizProgressFill');
+  const quizProgressLabel = document.getElementById('quizProgressLabel');
+  const quizScoreEl = document.getElementById('quizScore');
+  const quizShuffleBtn = document.getElementById('quizShuffleBtn');
+  const quizTypeBadge = document.getElementById('quizTypeBadge');
+  const quizWordHint = document.getElementById('quizWordHint');
+  const quizSentence = document.getElementById('quizSentence');
+  const quizListenRow = document.getElementById('quizListenRow');
+  const quizSpeakBtn = document.getElementById('quizSpeakBtn');
+  const quizInput = document.getElementById('quizInput');
+  const quizSubmitBtn = document.getElementById('quizSubmitBtn');
+  const quizFeedback = document.getElementById('quizFeedback');
+  const quizPrevBtn = document.getElementById('quizPrevBtn');
+  const quizNextBtn = document.getElementById('quizNextBtn');
+  const quizQuestionWrap = document.getElementById('quizQuestionWrap');
+  const quizSummary = document.getElementById('quizSummary');
+  const finalScoreEl = document.getElementById('finalScore');
+  const restartBtn = document.getElementById('restartBtn');
+
+  function currentQ() { return quizOrder[qPos]; }
+
+  function renderQuiz() {
+    quizQuestionWrap.style.display = '';
+    quizSummary.style.display = 'none';
+
+    const q = currentQ();
+    const w = words[q.wordIdx];
+
+    quizTypeBadge.textContent = q.label;
+    quizWordHint.textContent = '第 ' + (q.wordIdx + 1) + ' 個單字 · ' + w.pos;
+
+    if (q.type === 'listen') {
+      quizSentence.textContent = q.prompt;
+      quizListenRow.style.display = 'flex';
+    } else {
+      quizSentence.innerHTML = q.prompt.replace('______', '<span class="blank">______</span>');
+      quizListenRow.style.display = 'none';
+    }
+
+    quizInput.value = '';
+    quizInput.className = 'quiz-input';
+    quizInput.disabled = false;
+    quizFeedback.className = 'quiz-feedback';
+    quizFeedback.textContent = '';
+    quizSubmitBtn.textContent = '送出';
+    quizSubmitBtn.disabled = false;
+
+    quizProgressFill.style.width = ((qPos + 1) / quizOrder.length * 100) + '%';
+    quizProgressLabel.textContent = (qPos + 1) + ' / ' + quizOrder.length;
+    quizScoreEl.textContent = qScore;
+
+    quizPrevBtn.disabled = qPos === 0;
+    quizNextBtn.textContent = qPos === quizOrder.length - 1 ? '完成測驗 🏁' : '下一題 ➡️';
+
+    // restore previous answer state if already answered
+    if (answeredCorrect[qPos] !== null) {
+      showFeedback(answeredCorrect[qPos], q.answer, true);
+    }
+
+    setTimeout(() => quizInput.focus(), 150);
+  }
+
+  function showFeedback(isCorrect, correctAnswer, silent) {
+    quizInput.disabled = true;
+    quizSubmitBtn.disabled = true;
+    quizFeedback.classList.add('show');
+    if (isCorrect) {
+      quizInput.classList.add('correct');
+      quizFeedback.classList.add('correct');
+      quizFeedback.classList.remove('wrong');
+      quizFeedback.textContent = '✅ 答對了！太棒了～';
+    } else {
+      quizInput.classList.add('wrong');
+      quizFeedback.classList.add('wrong');
+      quizFeedback.classList.remove('correct');
+      quizFeedback.textContent = '❌ 再加油！正確答案是：' + correctAnswer;
+    }
+  }
+
+  function submitAnswer() {
+    if (quizInput.disabled) return;
+    const q = currentQ();
+    const userVal = quizInput.value.trim().toLowerCase();
+    if (!userVal) { quizInput.focus(); return; }
+    const isCorrect = userVal === q.answer.toLowerCase() ||
+      (q.altAnswer && userVal === q.altAnswer.toLowerCase());
+    if (answeredCorrect[qPos] === null) {
+      answeredCorrect[qPos] = isCorrect;
+      if (isCorrect) { qScore++; quizScoreEl.textContent = qScore; }
+    }
+    showFeedback(isCorrect, q.answer, false);
+  }
+
+  quizSubmitBtn.addEventListener('click', submitAnswer);
+  quizInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitAnswer(); });
+  quizSpeakBtn.addEventListener('click', () => { speak(words[currentQ().wordIdx].word, quizSpeakBtn); });
+
+  quizPrevBtn.addEventListener('click', () => {
+    if (qPos === 0) return;
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    qPos--; renderQuiz();
+  });
+  quizNextBtn.addEventListener('click', () => {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    if (qPos === quizOrder.length - 1) {
+      finishQuiz();
+    } else {
+      qPos++; renderQuiz();
+    }
+  });
+
+  function finishQuiz() {
+    quizQuestionWrap.style.display = 'none';
+    quizSummary.style.display = 'block';
+    finalScoreEl.textContent = qScore;
+    const pct = qScore / quizOrder.length;
+    document.querySelector('.quiz-summary-emoji').textContent = pct === 1 ? '🏆' : pct >= 0.7 ? '🎉' : '💪';
+    document.querySelector('.quiz-summary-sub').textContent =
+      pct === 1 ? '全對！你是單字小天才！' : pct >= 0.7 ? '表現得很好，繼續保持！' : '再多練習幾次，你可以更棒！';
+  }
+
+  function resetQuiz() {
+    quizOrder = shuffleFlat(buildQuestions());
+    qPos = 0; qScore = 0;
+    answeredCorrect = new Array(quizOrder.length).fill(null);
+    renderQuiz();
+  }
+
+  quizShuffleBtn.addEventListener('click', () => {
+    showToast('已將全部 30 題重新隨機排序 🔀');
+    resetQuiz();
+  });
+
+  restartBtn.addEventListener('click', () => resetQuiz());
+
+  document.addEventListener('keydown', (e) => {
+    if (!viewQuiz.classList.contains('active')) return;
+    if (e.key === 'Enter' && quizInput.disabled && quizSummary.style.display === 'none') {
+      quizNextBtn.click();
+    }
+  });
+
+  renderQuiz();
+})();
+</script>
+</body>
+</html>
